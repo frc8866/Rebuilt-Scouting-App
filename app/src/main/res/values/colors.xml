@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Theme.kt palette -->
+    <color name="dark_gray">#FF303030</color>
+    <color name="light_gray">#FF525252</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="yellow">#FFEBB302</color>
+    <color name="dark_yellow">#FF997000</color>
+    <color name="error_red">#FFFF6B6B</color>
+
+    <!-- Per-screen palette (HomeScreen/ScoutScreen/DataScreen private Color constants) -->
+    <color name="bg">#FF2A2A2A</color>
+    <color name="scaffold_bg">#FF1A1A1A</color>
+    <color name="surface">#FF3A3A3A</color>
+    <color name="card">#FF444444</color>
+    <color name="accent">#FFEBB302</color>
+    <color name="text">#FFF0F0F0</color>
+    <color name="text_dim">#FFAAAAAA</color>
+    <color name="divider">#FF555555</color>
+    <color name="alliance_red">#FFDC143C</color>
+    <color name="alliance_blue">#FF1565C0</color>
+    <color name="resume_highlight_bg">#FF3A3A00</color>
+    <color name="disabled_accent">#FF665000</color>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Equivalent of ScoutingAppTheme: the app always renders as dark (screens hard-code
+         a dark palette regardless of system theme), so this is a single dark theme rather
+         than day/night variants. -->
+    <style name="Theme.ScoutingApp" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/yellow</item>
+        <item name="colorPrimaryDark">@color/black</item>
+        <item name="colorAccent">@color/yellow</item>
+        <item name="android:windowBackground">@color/scaffold_bg</item>
+        <item name="android:textColorPrimary">@color/text</item>
+    </style>
+</resources>

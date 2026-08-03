@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/scaffold_bg">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/scaffold_bg"
+            app:navigationIcon="@drawable/ic_menu"
+            app:title="View Data"
+            app:titleTextColor="@color/text"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:background="@color/bg"
+            android:padding="16dp">
+
+            <FrameLayout
+                android:id="@+id/match_list_container"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent" />
+
+            <View android:layout_width="16dp" android:layout_height="match_parent" />
+
+            <FrameLayout
+                android:id="@+id/team_breakdown_container"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="260dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:background="@color/surface">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="MENU"
+            android:textColor="@color/accent"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:letterSpacing="0.15" />
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" />
+
+        <TextView
+            android:id="@+id/drawer_item_scout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Scout"
+            android:textColor="@color/text_dim" />
+
+        <TextView
+            android:id="@+id/drawer_item_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="View Data"
+            android:textColor="@color/accent"
+            android:textStyle="bold"
+            android:background="@color/resume_highlight_bg" />
+
+    </LinearLayout>
+
+</androidx.drawerlayout.widget.DrawerLayout>

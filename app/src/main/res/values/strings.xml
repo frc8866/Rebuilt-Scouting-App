@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Scouting App</string>
+    <string name="signup_field_error">Please only use letters.</string>
+</resources>

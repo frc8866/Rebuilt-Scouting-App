@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/scaffold_bg"
+        app:navigationIcon="@drawable/ic_arrow_left"
+        app:title="Scout Manually"
+        app:titleTextColor="@color/text" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="24dp"
+            android:baselineAligned="false">
+
+            <!-- LEFT: match info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginEnd="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MATCH INFO"
+                    android:textColor="@color/accent"
+                    android:textStyle="bold"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.15" />
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:layout_marginTop="6dp" android:layout_marginBottom="16dp" android:background="@color/accent" android:alpha="0.3" />
+
+                <LinearLayout
+                    android:id="@+id/competition_badge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_surface_8"
+                    android:padding="12dp"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Competition" android:textColor="@color/text_dim" android:textSize="12sp" />
+
+                    <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp" />
+
+                    <TextView
+                        android:id="@+id/tv_competition_badge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/accent"
+                        android:textStyle="bold"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Match Number"
+                    android:layout_marginBottom="12dp"
+                    app:boxStrokeColor="@color/accent"
+                    app:hintTextColor="@color/text_dim">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_match_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:textColor="@color/text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Team Number"
+                    android:layout_marginBottom="12dp"
+                    app:boxStrokeColor="@color/accent"
+                    app:hintTextColor="@color/text_dim">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_team_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:textColor="@color/text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Scouter Name"
+                    android:layout_marginBottom="12dp"
+                    app:boxStrokeColor="@color/accent"
+                    app:hintTextColor="@color/text_dim">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_scouter_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textColor="@color/text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:id="@+id/warning_already_scouted"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="#FF5C1A1A"
+                    android:padding="12dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="This match has already been scouted for the selected position."
+                        android:textColor="@color/error_red"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- RIGHT: position + submit -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SCOUTING POSITION"
+                    android:textColor="@color/accent"
+                    android:textStyle="bold"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.15" />
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:layout_marginTop="6dp" android:layout_marginBottom="12dp" android:background="@color/accent" android:alpha="0.3" />
+
+                <TextView
+                    android:id="@+id/tv_default_position"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_dim"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Red Alliance"
+                    android:textColor="@color/alliance_red"
+                    android:textStyle="bold"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:id="@+id/row_red_positions"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Blue Alliance"
+                    android:textColor="@color/alliance_blue"
+                    android:textStyle="bold"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:id="@+id/row_blue_positions"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="24dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_start_scouting"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Start Scouting"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    app:backgroundTint="@color/accent"
+                    app:cornerRadius="12dp" />
+
+                <ProgressBar
+                    android:id="@+id/progress_validating"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:indeterminateTint="@color/black"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
