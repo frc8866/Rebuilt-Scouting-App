@@ -7,6 +7,7 @@ import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -234,6 +235,7 @@ public class HomeActivity extends AppCompatActivity {
                     .setNegativeButton("Cancel", (d, w) -> viewModel.dismissScoutNextDialog())
                     .setOnDismissListener(d -> viewModel.dismissScoutNextDialog())
                     .create();
+            scoutNextDialog.setOnShowListener(d -> styleScoutNextDialogButtons());
             view.findViewById(R.id.btn_prev_match).setOnClickListener(v -> viewModel.shiftPendingMatch(-1));
             view.findViewById(R.id.btn_next_match).setOnClickListener(v -> viewModel.shiftPendingMatch(1));
         }
@@ -274,6 +276,25 @@ public class HomeActivity extends AppCompatActivity {
 
         boolean canConfirm = state.kind() == NextMatchDialogState.Kind.READY;
         scoutNextDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(canConfirm);
+    }
+
+    /** Style the Scout This Match / Cancel dialog buttons to match the app's accent/outline button look. */
+    private void styleScoutNextDialogButtons() {
+        Button positive = scoutNextDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negative = scoutNextDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        if (positive != null) {
+            positive.setBackgroundTintList(null); // theme's TextButton.Dialog style sets a backgroundTint
+            positive.setBackgroundResource(R.drawable.bg_button_accent_12);           // that otherwise washes out this drawable's fill.
+            positive.setTextColor(getColor(R.color.black));
+            positive.setTypeface(positive.getTypeface(), android.graphics.Typeface.BOLD);
+            positive.setAllCaps(false);
+            positive.setPadding(dp(20), dp(10), dp(20), dp(10));
+        }
+        if (negative != null) {
+            negative.setTextColor(getColor(R.color.accent));
+            negative.setAllCaps(false);
+            negative.setPadding(dp(20), dp(10), dp(20), dp(10));
+        }
     }
 
     // ── PIN dialog ────────────────────────────────────────────────────────────

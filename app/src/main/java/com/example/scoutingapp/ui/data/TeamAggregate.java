@@ -7,6 +7,8 @@ import java.util.List;
  * Percentage fields (0.0-100.0): preloadPct, onFieldPct, wonAutoPct, wonMatchPct
  * Majority-vote booleans: bump, trench, groundIntake, station
  * Numeric averages: avgIntake, avgShoot, avgDefend, avgFuelPercent, avgDriverSkill, avgFuelPerMatch
+ * fuelPerSecWhileShooting: sum(fuel scored) / sum(total_shoot) over matches with total_shoot >=
+ * DataRepository.MIN_SHOOT_SECONDS_FOR_RATE (excludes short/accidental shoot-timer toggles).
  * notes: one entry per match, blank entries filtered out.
  */
 public class TeamAggregate {
@@ -29,6 +31,7 @@ public class TeamAggregate {
     public final double avgFuelPercent;
     public final double avgDriverSkill;
     public final double avgFuelPerMatch;
+    public final double fuelPerSecWhileShooting;
 
     public final List<String> notes;
 
@@ -36,7 +39,7 @@ public class TeamAggregate {
                           double wonAutoPct, double wonMatchPct, boolean bump, boolean trench,
                           boolean groundIntake, boolean station, double avgIntake, double avgShoot,
                           double avgDefend, double avgFuelPercent, double avgDriverSkill,
-                          double avgFuelPerMatch, List<String> notes) {
+                          double avgFuelPerMatch, double fuelPerSecWhileShooting, List<String> notes) {
         this.teamNumber = teamNumber;
         this.matchesScoutedCount = matchesScoutedCount;
         this.preloadPct = preloadPct;
@@ -53,6 +56,7 @@ public class TeamAggregate {
         this.avgFuelPercent = avgFuelPercent;
         this.avgDriverSkill = avgDriverSkill;
         this.avgFuelPerMatch = avgFuelPerMatch;
+        this.fuelPerSecWhileShooting = fuelPerSecWhileShooting;
         this.notes = notes;
     }
 }

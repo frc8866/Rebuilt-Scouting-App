@@ -23,6 +23,16 @@ import java.util.Set;
  * Java equivalent of ScoutScreen.kt. Instead of Compose's declarative recomposition,
  * this Activity rebuilds the single content container each time ScoutUiState.stage
  * (or other relevant fields) change, by inflating the matching stage view.
+ *
+ * IMPORTANT: ScoutViewModel's timer loop pushes a new uiState roughly every 500ms (for the
+ * clock tick), not just when the stage actually changes. Auto/Transition/Shift1-4/Endgame all
+ * render via the same MainScoutingStageView, which hosts the hold-to-track Intake/Shoot/Defend
+ * buttons. If we unconditionally tore down and rebuilt that view on every uiState emission, an
+ * in-progress button hold would be interrupted every ~500ms (and definitely at every shift
+ * transition), since the buttons' press state lives on the view instance. To avoid that, while
+ * we're within that "main scouting" stage group we reuse the existing MainScoutingStageView and
+ * just refresh its text/clock fields in place via update(); we only tear down and reconstruct
+ * when actually leaving/entering that stage group (e.g. Start -> Auto, or Endgame -> Summary).
  */
 public class ScoutActivity extends AppCompatActivity {
 
@@ -38,6 +48,7 @@ public class ScoutActivity extends AppCompatActivity {
     private AlertDialog submitErrorDialog;
 
     private ScoutStage lastRenderedStage = null;
+    private MainScoutingStageView currentMainView = null;
     private boolean initialized = false;
 
     @Override
@@ -56,19 +67,25 @@ public class ScoutActivity extends AppCompatActivity {
         String position = getIntent().getStringExtra(EXTRA_POSITION);
         boolean isResume = getIntent().getBooleanExtra(EXTRA_RESUME, false);
 
-        if (scouterName != null && !scouterName.trim().isEmpty() && !initialized) {
-            initialized = true;
+        // Resuming a saved match must not depend on the scouter-name intent extra being
+        // non-blank: that extra is itself sourced from the saved snapshot's scouterName, so if
+        // that ever comes back null/blank, gating restoreFrom() on it here would silently skip
+        // restoration entirely and leave ScoutUiState at its bare (all-zero) defaults.
+        if (!initialized) {
             if (isResume) {
                 SavedMatchState saved = matchStateStore.getSavedStateNow();
                 if (saved != null) {
+                    initialized = true;
                     if (saved.scouterName == null || saved.scouterName.trim().isEmpty()) {
-                        saved.scouterName = scouterName;
+                        saved.scouterName = scouterName != null ? scouterName : "";
                     }
                     viewModel.restoreFrom(saved);
-                } else {
+                } else if (scouterName != null && !scouterName.trim().isEmpty()) {
+                    initialized = true;
                     viewModel.initialize(competition, matchId, teamNumber, position, scouterName);
                 }
-            } else {
+            } else if (scouterName != null && !scouterName.trim().isEmpty()) {
+                initialized = true;
                 viewModel.initialize(competition, matchId, teamNumber, position, scouterName);
             }
         }
@@ -94,7 +111,21 @@ public class ScoutActivity extends AppCompatActivity {
             submitErrorDialog = null;
         }
 
+        // Still inside the same "main scouting" stage group (Auto/Transition/Shift1-4/Endgame) as
+        // last render: refresh the existing view in place instead of tearing it down, so any
+        // in-progress hold-timer button press survives clock ticks and shift transitions.
+        if (isMainScoutingStage(state.stage) && currentMainView != null) {
+            String stageLabel = stageLabelFor(state);
+            boolean showProceed = state.stage == ScoutStage.Endgame;
+            currentMainView.update(state.teamNumber, state.matchId, state.positionLabel, stageLabel,
+                    viewModel.formatClock(), state.scouterName, state.getRemainingSec(), showProceed,
+                    () -> viewModel.setStage(ScoutStage.Summary));
+            lastRenderedStage = state.stage;
+            return;
+        }
+
         container.removeAllViews();
+        currentMainView = null;
 
         switch (state.stage) {
             case Start: {
@@ -106,19 +137,7 @@ public class ScoutActivity extends AppCompatActivity {
                 container.addView(view.root);
                 break;
             }
-            case Auto: {
-                MainScoutingStageView view = new MainScoutingStageView(this, container, state.teamNumber, state.matchId,
-                        state.positionLabel, "Auto", viewModel.formatClock(), state.scouterName, state.getRemainingSec(),
-                        false, viewModel::addTime, () -> {});
-                container.addView(view.root);
-                break;
-            }
-            case AutoWinnerScreen: {
-                AutoWinnerScreenView view = new AutoWinnerScreenView(this, container, viewModel.formatClock(),
-                        state.teamNumber, state.positionLabel, viewModel::setAutoWinner);
-                container.addView(view.root);
-                break;
-            }
+            case Auto:
             case Transition:
             case Shift1:
             case Shift2:
@@ -131,6 +150,13 @@ public class ScoutActivity extends AppCompatActivity {
                         state.positionLabel, stageLabel, viewModel.formatClock(), state.scouterName, state.getRemainingSec(),
                         showProceed, viewModel::addTime, () -> viewModel.setStage(ScoutStage.Summary));
                 container.addView(view.root);
+                currentMainView = view;
+                break;
+            }
+            case AutoWinnerScreen: {
+                AutoWinnerScreenView view = new AutoWinnerScreenView(this, container, viewModel.formatClock(),
+                        state.teamNumber, state.positionLabel, viewModel::setAutoWinner);
+                container.addView(view.root);
                 break;
             }
             case Summary: {
@@ -141,6 +167,7 @@ public class ScoutActivity extends AppCompatActivity {
                 fields.station = boolField(state, "station");
                 fields.driverSkill = intField(state, "driver_skill", 3);
                 fields.fuelPercent = intField(state, "fuel_percent", 0);
+                fields.fuelPercentTouched = boolField(state, "fuel_percent_touched");
                 fields.allianceAutoFuelScore = stringField(state, "alliance_auto_fuel_score");
                 fields.allianceTeleopFuelScore = stringField(state, "alliance_teleop_fuel_score");
                 fields.wonMatch = state.data.get("won_match") instanceof Boolean ? (Boolean) state.data.get("won_match") : null;
@@ -155,7 +182,10 @@ public class ScoutActivity extends AppCompatActivity {
                     @Override public void onGroundIntakeChange(boolean v) { viewModel.updateField("ground_intake", v); }
                     @Override public void onStationChange(boolean v) { viewModel.updateField("station", v); }
                     @Override public void onDriverSkillChange(int v) { viewModel.updateField("driver_skill", v); }
-                    @Override public void onFuelPercentChange(int v) { viewModel.updateField("fuel_percent", v); }
+                    @Override public void onFuelPercentChange(int v) {
+                        viewModel.updateField("fuel_percent", v);
+                        viewModel.updateField("fuel_percent_touched", true);
+                    }
                     @Override public void onAutoFuelScoreChange(String v) { viewModel.updateField("alliance_auto_fuel_score", v); }
                     @Override public void onTeleopFuelScoreChange(String v) { viewModel.updateField("alliance_teleop_fuel_score", v); }
                     @Override public void onWonMatchChange(boolean v) { viewModel.updateField("won_match", v); }
@@ -166,11 +196,29 @@ public class ScoutActivity extends AppCompatActivity {
                 break;
             }
         }
+
+        lastRenderedStage = state.stage;
+    }
+
+    private static boolean isMainScoutingStage(ScoutStage stage) {
+        switch (stage) {
+            case Auto:
+            case Transition:
+            case Shift1:
+            case Shift2:
+            case Shift3:
+            case Shift4:
+            case Endgame:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private String stageLabelFor(ScoutUiState state) {
         Set<Integer> active = state.activeShifts != null ? state.activeShifts : new HashSet<>();
         switch (state.stage) {
+            case Auto: return "Auto";
             case Transition: return "Transition";
             case Shift1: return active.contains(1) ? "Active Shift" : "Inactive Shift";
             case Shift2: return active.contains(2) ? "Active Shift" : "Inactive Shift";

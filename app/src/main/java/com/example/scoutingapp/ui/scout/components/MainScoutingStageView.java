@@ -17,38 +17,36 @@ public class MainScoutingStageView {
 
     public final View root;
 
+    private final Context context;
+    private final TextView tvTeamNumber;
+    private final View scouterBadge;
+    private final TextView tvScouterName;
+    private final TextView tvPositionBadge;
+    private final TextView tvMatchBadge;
+    private final TextView tvClock;
+    private final View proceedBtn;
+
+    private Runnable onProceedToSummary;
+
     public MainScoutingStageView(Context context, ViewGroup container, int teamNumber, int matchId,
                                   String positionLabel, String stageLabel, String clockText, String scouterName,
                                   int remainingSec, boolean showProceedButton,
                                   OnTimeUpdate onTimeUpdate, Runnable onProceedToSummary) {
+        this.context = context;
+        this.onProceedToSummary = onProceedToSummary;
         root = LayoutInflater.from(context).inflate(R.layout.stage_main_scouting, container, false);
 
-        ((TextView) root.findViewById(R.id.tv_team_number)).setText(String.valueOf(teamNumber));
+        tvTeamNumber = root.findViewById(R.id.tv_team_number);
+        scouterBadge = root.findViewById(R.id.badge_scouter);
+        tvScouterName = root.findViewById(R.id.tv_scouter_name);
+        tvPositionBadge = root.findViewById(R.id.tv_position_badge);
+        tvMatchBadge = root.findViewById(R.id.tv_match_badge);
+        tvClock = root.findViewById(R.id.tv_clock);
+        proceedBtn = root.findViewById(R.id.btn_proceed);
 
-        View scouterBadge = root.findViewById(R.id.badge_scouter);
-        if (scouterName != null && !scouterName.trim().isEmpty()) {
-            scouterBadge.setVisibility(View.VISIBLE);
-            ((TextView) root.findViewById(R.id.tv_scouter_name)).setText(titleCase(scouterName.replace('_', ' ')));
-        } else {
-            scouterBadge.setVisibility(View.GONE);
-        }
-
-        boolean isRed = positionLabel != null && positionLabel.toLowerCase().startsWith("red");
-        int allianceColor = isRed ? 0xFFDC143C : 0xFF1E90FF;
-        TextView positionBadge = root.findViewById(R.id.tv_position_badge);
-        positionBadge.setText(positionLabel);
-        android.graphics.drawable.GradientDrawable badgeBg = new android.graphics.drawable.GradientDrawable();
-        badgeBg.setColor(allianceColor);
-        badgeBg.setCornerRadius(8 * context.getResources().getDisplayMetrics().density);
-        positionBadge.setBackground(badgeBg);
-
-        ((TextView) root.findViewById(R.id.tv_match_badge)).setText("Quals " + matchId + " - " + stageLabel);
-        ((TextView) root.findViewById(R.id.tv_clock)).setText(clockText);
-
-        View proceedBtn = root.findViewById(R.id.btn_proceed);
-        boolean showProceed = showProceedButton && remainingSec == 0;
-        proceedBtn.setVisibility(showProceed ? View.VISIBLE : View.GONE);
-        proceedBtn.setOnClickListener(v -> onProceedToSummary.run());
+        proceedBtn.setOnClickListener(v -> {
+            if (this.onProceedToSummary != null) this.onProceedToSummary.run();
+        });
 
         LinearLayout holdButtonsContainer = root.findViewById(R.id.hold_timer_buttons_container);
         holdButtonsContainer.addView(makeSpacedHoldButton(context, "Intake", 0xFFEBB302, android.graphics.Color.BLACK,
@@ -57,6 +55,43 @@ public class MainScoutingStageView {
                 ms -> onTimeUpdate.update("shoot", ms), true));
         holdButtonsContainer.addView(makeSpacedHoldButton(context, "Defend", 0xFF6B6B6B, android.graphics.Color.WHITE,
                 ms -> onTimeUpdate.update("defend", ms), true));
+
+        update(teamNumber, matchId, positionLabel, stageLabel, clockText, scouterName, remainingSec, showProceedButton, onProceedToSummary);
+    }
+
+    /**
+     * Refreshes the cosmetic/text parts of this view (team number, badges, clock, proceed button)
+     * in place, without touching the hold-timer buttons or their view instances. Call this instead
+     * of constructing a new MainScoutingStageView when the underlying stage "kind" hasn't changed
+     * (e.g. on a clock tick, or when moving between Transition/Shift1-4/Endgame), so an in-progress
+     * button hold is not interrupted by a view teardown.
+     */
+    public void update(int teamNumber, int matchId, String positionLabel, String stageLabel, String clockText,
+                        String scouterName, int remainingSec, boolean showProceedButton, Runnable onProceedToSummary) {
+        this.onProceedToSummary = onProceedToSummary;
+
+        tvTeamNumber.setText(String.valueOf(teamNumber));
+
+        if (scouterName != null && !scouterName.trim().isEmpty()) {
+            scouterBadge.setVisibility(View.VISIBLE);
+            tvScouterName.setText(titleCase(scouterName.replace('_', ' ')));
+        } else {
+            scouterBadge.setVisibility(View.GONE);
+        }
+
+        boolean isRed = positionLabel != null && positionLabel.toLowerCase().startsWith("red");
+        int allianceColor = isRed ? 0xFFDC143C : 0xFF1E90FF;
+        tvPositionBadge.setText(positionLabel);
+        android.graphics.drawable.GradientDrawable badgeBg = new android.graphics.drawable.GradientDrawable();
+        badgeBg.setColor(allianceColor);
+        badgeBg.setCornerRadius(8 * context.getResources().getDisplayMetrics().density);
+        tvPositionBadge.setBackground(badgeBg);
+
+        tvMatchBadge.setText("Quals " + matchId + " - " + stageLabel);
+        tvClock.setText(clockText);
+
+        boolean showProceed = showProceedButton && remainingSec == 0;
+        proceedBtn.setVisibility(showProceed ? View.VISIBLE : View.GONE);
     }
 
     private HoldTimerButtonView makeSpacedHoldButton(Context context, String label, int bgColor, int textColor,

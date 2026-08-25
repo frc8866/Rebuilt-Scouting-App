@@ -245,6 +245,16 @@
                         android:textColor="@color/text"
                         android:textStyle="bold"
                         android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tv_fuel_percent_required_hint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Drag the slider at least once before submitting"
+                        android:textColor="@color/error_red"
+                        android:textSize="11sp"
+                        android:layout_marginTop="4dp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </LinearLayout>
 

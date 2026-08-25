@@ -111,7 +111,9 @@ public class ScoutViewModel extends ViewModel {
         s.data.put("notes", "");
         s.data.put("avg_intake", 0.0);
         s.data.put("avg_shoot", 0.0);
+        s.data.put("total_shoot", 0.0);
         s.data.put("avg_defend", 0.0);
+        s.data.put("fuel_percent_touched", false);
         s.totalDurationSec = 160;
 
         _uiState.setValue(s);
@@ -188,6 +190,7 @@ public class ScoutViewModel extends ViewModel {
         s.competition = saved.competition;
         s.matchId = saved.matchId;
         s.teamNumber = saved.teamNumber;
+        s.scouterName = saved.scouterName != null ? saved.scouterName : "";
         s.positionLabel = saved.positionLabel;
         s.deviceAlliance = Alliance.fromLabel(saved.positionLabel);
         s.autoWinner = saved.autoWinnerName != null ? Alliance.valueOf(saved.autoWinnerName) : null;
@@ -421,6 +424,7 @@ public class ScoutViewModel extends ViewModel {
                     d.get("notes") instanceof String ? (String) d.get("notes") : "",
                     doubleOrDefault(d.get("avg_intake"), 0.0),
                     doubleOrDefault(d.get("avg_shoot"), 0.0),
+                    doubleOrDefault(d.get("total_shoot"), 0.0),
                     doubleOrDefault(d.get("avg_defend"), 0.0)
             );
             String tableName = TableResolver.data(new Competition(s.competition, ""));
@@ -459,6 +463,7 @@ public class ScoutViewModel extends ViewModel {
     private void calculateAverages() {
         updateField("avg_intake", calcAvg("intake"));
         updateField("avg_shoot", calcAvg("shoot"));
+        updateField("total_shoot", calcTotal("shoot"));
         updateField("avg_defend", calcAvg("defend"));
     }
 
@@ -468,6 +473,13 @@ public class ScoutViewModel extends ViewModel {
         int totalCount = s.timeCounts.getOrDefault(action, 0);
         if (totalCount == 0) return 0.0;
         return ((long) ((totalMs / (double) totalCount / 1000.0) * 10)) / 10.0;
+    }
+
+    /** Total accumulated time (seconds) spent in the given action across the whole match. */
+    private double calcTotal(String action) {
+        ScoutUiState s = state();
+        long totalMs = s.timeTotals.getOrDefault(action, 0L);
+        return ((long) ((totalMs / 1000.0) * 10)) / 10.0;
     }
 
     private static ScoutPosition parsePositionLabel(String label) {

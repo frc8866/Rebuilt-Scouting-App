@@ -22,12 +22,16 @@ public class MatchStateStore {
 
     private final SharedPreferences prefs;
     private final Gson gson = new Gson();
+    // Strong reference: SharedPreferences only holds a WEAK reference to registered
+    // listeners, so without this field the lambda below is eligible for GC almost
+    // immediately, silently breaking live updates to savedStateLiveData.
+    private final SharedPreferences.OnSharedPreferenceChangeListener listener = (sp, key) -> refresh();
 
     private final MutableLiveData<SavedMatchState> savedStateLiveData = new MutableLiveData<>();
 
     public MatchStateStore(Context context) {
         this.prefs = context.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.registerOnSharedPreferenceChangeListener((sp, key) -> refresh());
+        prefs.registerOnSharedPreferenceChangeListener(listener);
         refresh();
     }
 

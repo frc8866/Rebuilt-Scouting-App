@@ -177,7 +177,9 @@ public class TeamBreakdownPaneView {
     }
 
     private View matchScoutingContent(TeamAggregate agg) {
-        double ballsPerSec = agg.avgShoot > 0 ? 1.0 / (agg.avgShoot / 1000.0) : 0.0;
+        // Fuel/sec while shooting: sum(fuel scored) / sum(shoot time), computed row-matched and
+        // epsilon-filtered in DataRepository.aggregate() (see fuelPerSecWhileShooting).
+        double ballsPerSec = agg.fuelPerSecWhileShooting;
 
         ScrollView scroll = new ScrollView(context);
         LinearLayout column = new LinearLayout(context);

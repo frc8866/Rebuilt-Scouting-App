@@ -21,6 +21,14 @@ import java.util.concurrent.CompletableFuture;
 
 public class DataRepository implements IDataRepository {
 
+    /**
+     * Minimum total_shoot (seconds) a match must have before it counts toward the
+     * fuel/sec-while-shooting rate. Guards against a brief/accidental shoot-timer toggle
+     * acting as a near-zero denominator and producing an absurd outlier rate for that match.
+     * Tune as needed based on observed match data.
+     */
+    public static final double MIN_SHOOT_SECONDS_FOR_RATE = 3.0;
+
     private final String competition;
     private final PostgrestClient client = new PostgrestClient();
 
@@ -178,7 +186,7 @@ public class DataRepository implements IDataRepository {
 
                 if (allRows.isEmpty()) {
                     TeamAggregate empty = new TeamAggregate(teamNumber, 0, 0.0, 0.0, 0.0, 0.0,
-                            false, false, false, false, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, new ArrayList<>());
+                            false, false, false, false, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, new ArrayList<>());
                     AppExecutors.runOnMain(() -> callback.onSuccess(empty));
                     return;
                 }
@@ -312,6 +320,11 @@ public class DataRepository implements IDataRepository {
         };
 
         List<Double> fuelPerMatchVals = new ArrayList<>();
+        // fuelPerSecWhileShooting = sum(fuel scored by this team) / sum(time spent shooting),
+        // restricted to the SAME rows on both sides so the ratio reflects one consistent set of
+        // matches (a match missing from one side and not the other would silently skew the rate).
+        double shootTimeSumForRate = 0.0;
+        double fuelSumForRate = 0.0;
         for (JSONObject row : onField) {
             Double autoF = optDouble(row, "alliance_auto_fuel_score");
             Double teleopF = optDouble(row, "alliance_teleop_fuel_score");
@@ -323,7 +336,14 @@ public class DataRepository implements IDataRepository {
             }
             Double pctVal = optDouble(row, "fuel_percent");
             if (score != null && pctVal != null) {
-                fuelPerMatchVals.add(score * pctVal / 100.0);
+                double fuelForRow = score * pctVal / 100.0;
+                fuelPerMatchVals.add(fuelForRow);
+
+                Double totalShoot = optDouble(row, "total_shoot");
+                if (totalShoot != null && totalShoot >= MIN_SHOOT_SECONDS_FOR_RATE) {
+                    fuelSumForRate += fuelForRow;
+                    shootTimeSumForRate += totalShoot;
+                }
             }
         }
         double avgFuelPerMatch = 0.0;
@@ -332,6 +352,7 @@ public class DataRepository implements IDataRepository {
             for (double v : fuelPerMatchVals) sum += v;
             avgFuelPerMatch = sum / fuelPerMatchVals.size();
         }
+        double fuelPerSecWhileShooting = shootTimeSumForRate > 0 ? fuelSumForRate / shootTimeSumForRate : 0.0;
 
         List<String> notes = new ArrayList<>();
         for (JSONObject r : rows) {
@@ -356,6 +377,7 @@ public class DataRepository implements IDataRepository {
                 round1(avg.apply("fuel_percent")),
                 round1(avg.apply("driver_skill")),
                 round1(avgFuelPerMatch),
+                round1(fuelPerSecWhileShooting),
                 notes
         );
     }

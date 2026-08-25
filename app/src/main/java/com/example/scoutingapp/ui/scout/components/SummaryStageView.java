@@ -26,6 +26,7 @@ public class SummaryStageView {
         public boolean bump, trench, groundIntake, station;
         public int driverSkill = 3;
         public int fuelPercent = 0;
+        public boolean fuelPercentTouched = false;
         public String allianceAutoFuelScore = "";
         public String allianceTeleopFuelScore = "";
         public Boolean wonMatch = null;
@@ -66,7 +67,7 @@ public class SummaryStageView {
     private final SeekBar seekFuelPercent;
     private final TextView tvFuelPercent;
     private final TextInputEditText etAutoFuel, etTeleopFuel;
-    private final TextView tvFuelTotal, tvFuelRequiredHint;
+    private final TextView tvFuelTotal, tvFuelRequiredHint, tvFuelPercentRequiredHint;
     private final TextView btnWonYes, btnWonNo, tvWonRequiredHint;
     private final MaterialButton btnSubmit;
     private final ProgressBar progressSubmitting;
@@ -125,6 +126,7 @@ public class SummaryStageView {
         etTeleopFuel = root.findViewById(R.id.et_teleop_fuel_score);
         tvFuelTotal = root.findViewById(R.id.tv_fuel_total);
         tvFuelRequiredHint = root.findViewById(R.id.tv_fuel_required_hint);
+        tvFuelPercentRequiredHint = root.findViewById(R.id.tv_fuel_percent_required_hint);
 
         etAutoFuel.addTextChangedListener(digitsOnlyWatcher(callbacks::onAutoFuelScoreChange));
         etTeleopFuel.addTextChangedListener(digitsOnlyWatcher(callbacks::onTeleopFuelScoreChange));
@@ -180,6 +182,9 @@ public class SummaryStageView {
 
         seekFuelPercent.setProgress(f.fuelPercent);
         tvFuelPercent.setText(f.fuelPercent + "%");
+
+        boolean fuelPercentMissing = !f.fuelPercentTouched && !f.canSubmit;
+        tvFuelPercentRequiredHint.setVisibility(fuelPercentMissing ? View.VISIBLE : View.GONE);
 
         setTextIfDifferent(etAutoFuel, f.allianceAutoFuelScore);
         setTextIfDifferent(etTeleopFuel, f.allianceTeleopFuelScore);
