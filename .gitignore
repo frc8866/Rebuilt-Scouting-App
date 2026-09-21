@@ -6,3 +6,4 @@
 *.properties
 local.properties
 .gradle/
+.idea/
