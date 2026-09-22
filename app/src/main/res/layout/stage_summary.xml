@@ -113,9 +113,63 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FUEL CONTRIBUTION"
+                    android:textColor="@color/accent"
+                    android:textStyle="bold"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_card_12"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Est. % of alliance fuel scored by this robot"
+                        android:textColor="@color/text_dim"
+                        android:textSize="12sp" />
+
+                    <SeekBar
+                        android:id="@+id/seek_fuel_percent"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:paddingVertical="14dp"
+                        android:splitTrack="false"
+                        android:progressDrawable="@drawable/seekbar_track_fuel"
+                        android:thumb="@drawable/seekbar_thumb_fuel"
+                        android:max="100" />
+
+                    <TextView
+                        android:id="@+id/tv_fuel_percent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:textColor="@color/text"
+                        android:textStyle="bold"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tv_fuel_percent_required_hint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Drag the slider at least once before submitting"
+                        android:textColor="@color/error_red"
+                        android:textSize="11sp"
+                        android:layout_marginTop="4dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+
             </LinearLayout>
 
-            <!-- CENTER: Robot capabilities + fuel -->
+            <!-- CENTER: Robot capabilities -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_weight="1"
@@ -169,55 +223,6 @@
                         android:layout_marginTop="6dp" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="FUEL CONTRIBUTION"
-                    android:textColor="@color/accent"
-                    android:textStyle="bold"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.1"
-                    android:layout_marginBottom="8dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:background="@drawable/bg_card_12"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Est. % of alliance fuel scored by this robot"
-                        android:textColor="@color/text_dim"
-                        android:textSize="12sp" />
-
-                    <SeekBar
-                        android:id="@+id/seek_fuel_percent"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:max="100" />
-
-                    <TextView
-                        android:id="@+id/tv_fuel_percent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:textColor="@color/text"
-                        android:textStyle="bold"
-                        android:textSize="20sp" />
-
-                    <TextView
-                        android:id="@+id/tv_fuel_percent_required_hint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Drag the slider at least once before submitting"
-                        android:textColor="@color/error_red"
-                        android:textSize="11sp"
-                        android:layout_marginTop="4dp"
-                        android:visibility="gone" />
-                </LinearLayout>
             </LinearLayout>
 
             <!-- RIGHT: Fuel score + Won Match + Submit -->
