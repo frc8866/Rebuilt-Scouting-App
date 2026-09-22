@@ -96,6 +96,7 @@
             app:backgroundTint="#FF4CAF50"
             app:cornerRadius="8dp"
             android:visibility="gone"
+            app:textAllCaps="false"
             xmlns:app="http://schemas.android.com/apk/res-auto" />
     </LinearLayout>
 
