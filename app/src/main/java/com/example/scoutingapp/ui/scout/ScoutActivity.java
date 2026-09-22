@@ -171,7 +171,6 @@ public class ScoutActivity extends AppCompatActivity {
                 fields.allianceAutoFuelScore = stringField(state, "alliance_auto_fuel_score");
                 fields.allianceTeleopFuelScore = stringField(state, "alliance_teleop_fuel_score");
                 fields.wonMatch = state.data.get("won_match") instanceof Boolean ? (Boolean) state.data.get("won_match") : null;
-                fields.notes = stringField(state, "notes");
                 fields.isSubmitting = state.isSubmitting;
                 fields.canSubmit = state.canSubmit();
 
@@ -189,7 +188,6 @@ public class ScoutActivity extends AppCompatActivity {
                     @Override public void onAutoFuelScoreChange(String v) { viewModel.updateField("alliance_auto_fuel_score", v); }
                     @Override public void onTeleopFuelScoreChange(String v) { viewModel.updateField("alliance_teleop_fuel_score", v); }
                     @Override public void onWonMatchChange(boolean v) { viewModel.updateField("won_match", v); }
-                    @Override public void onNotesChange(String v) { viewModel.updateField("notes", v); }
                     @Override public void onSubmit() { viewModel.submitData(ScoutActivity.this::finish); }
                 });
                 container.addView(view.root);

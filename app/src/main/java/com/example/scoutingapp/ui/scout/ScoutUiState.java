@@ -39,12 +39,11 @@ public class ScoutUiState {
         boolean wonMatchFilled = data.get("won_match") instanceof Boolean;
         String autoFuel = data.get("alliance_auto_fuel_score") instanceof String ? (String) data.get("alliance_auto_fuel_score") : "";
         String teleopFuel = data.get("alliance_teleop_fuel_score") instanceof String ? (String) data.get("alliance_teleop_fuel_score") : "";
-        String notes = data.get("notes") instanceof String ? (String) data.get("notes") : "";
         // Fuel % defaults to 0 and the slider must be dragged at least once, so a submitted 0
         // is always a deliberate observation rather than an untouched default masquerading as one.
         boolean fuelPercentTouched = Boolean.TRUE.equals(data.get("fuel_percent_touched"));
         return wonMatchFilled && !autoFuel.trim().isEmpty() && !teleopFuel.trim().isEmpty()
-                && !notes.trim().isEmpty() && fuelPercentTouched;
+                && fuelPercentTouched;
     }
 
     /** Shallow copy - used when the ViewModel needs to hand out a fresh snapshot. */

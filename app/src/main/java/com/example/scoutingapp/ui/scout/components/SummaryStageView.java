@@ -30,7 +30,6 @@ public class SummaryStageView {
         public String allianceAutoFuelScore = "";
         public String allianceTeleopFuelScore = "";
         public Boolean wonMatch = null;
-        public String notes = "";
         public boolean isSubmitting = false;
         public boolean canSubmit = false;
     }
@@ -45,7 +44,6 @@ public class SummaryStageView {
         void onAutoFuelScoreChange(String v);
         void onTeleopFuelScoreChange(String v);
         void onWonMatchChange(boolean v);
-        void onNotesChange(String v);
         void onSubmit();
     }
 
@@ -61,7 +59,6 @@ public class SummaryStageView {
     private final Callbacks callbacks;
 
     private final LinearLayout rowDriverSkill;
-    private final TextInputEditText etNotes;
     private final TextView checkTrenchLabel, checkBumpLabel, checkGroundLabel, checkStationLabel;
     private final CheckBox checkTrenchBox, checkBumpBox, checkGroundBox, checkStationBox;
     private final SeekBar seekFuelPercent;
@@ -71,7 +68,7 @@ public class SummaryStageView {
     private final TextView btnWonYes, btnWonNo, tvWonRequiredHint;
     private final MaterialButton btnSubmit;
     private final ProgressBar progressSubmitting;
-    private final TextView tvSubmitLockedHint, tvNotesRequiredHint;
+    private final TextView tvSubmitLockedHint;
 
     private boolean suppressTextEvents = false;
 
@@ -91,9 +88,6 @@ public class SummaryStageView {
         ((TextView) root.findViewById(R.id.tv_quals_badge)).setText("QUALS " + matchId);
 
         rowDriverSkill = root.findViewById(R.id.row_driver_skill);
-
-        etNotes = root.findViewById(R.id.et_notes);
-        tvNotesRequiredHint = root.findViewById(R.id.tv_notes_required_hint);
 
         LinearLayout checkTrenchRow = root.findViewById(R.id.check_trench);
         LinearLayout checkBumpRow = root.findViewById(R.id.check_bump);
@@ -130,13 +124,6 @@ public class SummaryStageView {
 
         etAutoFuel.addTextChangedListener(digitsOnlyWatcher(callbacks::onAutoFuelScoreChange));
         etTeleopFuel.addTextChangedListener(digitsOnlyWatcher(callbacks::onTeleopFuelScoreChange));
-        etNotes.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
-            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
-            @Override public void afterTextChanged(Editable s) {
-                if (!suppressTextEvents) callbacks.onNotesChange(s.toString());
-            }
-        });
 
         btnWonYes = root.findViewById(R.id.btn_won_yes);
         btnWonNo = root.findViewById(R.id.btn_won_no);
@@ -167,13 +154,6 @@ public class SummaryStageView {
             btn.setOnClickListener(v -> callbacks.onDriverSkillChange(level));
             rowDriverSkill.addView(btn);
         }
-
-        suppressTextEvents = true;
-        if (!etNotes.getText().toString().equals(f.notes)) etNotes.setText(f.notes);
-        suppressTextEvents = false;
-
-        boolean notesMissing = (f.notes == null || f.notes.trim().isEmpty()) && !f.canSubmit;
-        tvNotesRequiredHint.setVisibility(notesMissing ? View.VISIBLE : View.GONE);
 
         setCheckRow(checkTrenchLabel, checkTrenchBox, f.trench, "Under Trench");
         setCheckRow(checkBumpLabel, checkBumpBox, f.bump, "Over Bump");

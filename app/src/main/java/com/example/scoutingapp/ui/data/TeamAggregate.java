@@ -1,7 +1,5 @@
 package com.example.scoutingapp.ui.data;
 
-import java.util.List;
-
 /**
  * Aggregate stats for a team across all their scouted matches.
  * Percentage fields (0.0-100.0): preloadPct, onFieldPct, wonAutoPct, wonMatchPct
@@ -9,7 +7,6 @@ import java.util.List;
  * Numeric averages: avgIntake, avgShoot, avgDefend, avgFuelPercent, avgDriverSkill, avgFuelPerMatch
  * fuelPerSecWhileShooting: sum(fuel scored) / sum(total_shoot) over matches with total_shoot >=
  * DataRepository.MIN_SHOOT_SECONDS_FOR_RATE (excludes short/accidental shoot-timer toggles).
- * notes: one entry per match, blank entries filtered out.
  */
 public class TeamAggregate {
     public final int teamNumber;
@@ -33,13 +30,11 @@ public class TeamAggregate {
     public final double avgFuelPerMatch;
     public final double fuelPerSecWhileShooting;
 
-    public final List<String> notes;
-
     public TeamAggregate(int teamNumber, int matchesScoutedCount, double preloadPct, double onFieldPct,
                           double wonAutoPct, double wonMatchPct, boolean bump, boolean trench,
                           boolean groundIntake, boolean station, double avgIntake, double avgShoot,
                           double avgDefend, double avgFuelPercent, double avgDriverSkill,
-                          double avgFuelPerMatch, double fuelPerSecWhileShooting, List<String> notes) {
+                          double avgFuelPerMatch, double fuelPerSecWhileShooting) {
         this.teamNumber = teamNumber;
         this.matchesScoutedCount = matchesScoutedCount;
         this.preloadPct = preloadPct;
@@ -57,6 +52,5 @@ public class TeamAggregate {
         this.avgDriverSkill = avgDriverSkill;
         this.avgFuelPerMatch = avgFuelPerMatch;
         this.fuelPerSecWhileShooting = fuelPerSecWhileShooting;
-        this.notes = notes;
     }
 }

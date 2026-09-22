@@ -21,7 +21,6 @@ public class ScoutDataPayload {
     public final int allianceAutoFuelScore;
     public final int allianceTeleopFuelScore;
     public final boolean wonMatch;
-    public final String notes;
     public final double avgIntake;
     public final double avgShoot;
     public final double totalShoot;
@@ -31,7 +30,7 @@ public class ScoutDataPayload {
                              boolean preload, boolean onField, boolean wonAuto, boolean bump, boolean trench,
                              boolean groundIntake, boolean station, int driverSkill, int fuelPercent,
                              int allianceAutoFuelScore, int allianceTeleopFuelScore, boolean wonMatch,
-                             String notes, double avgIntake, double avgShoot, double totalShoot, double avgDefend) {
+                             double avgIntake, double avgShoot, double totalShoot, double avgDefend) {
         this.matchNumber = matchNumber;
         this.teamNumber = teamNumber;
         this.scoutingPosition = scoutingPosition;
@@ -48,7 +47,6 @@ public class ScoutDataPayload {
         this.allianceAutoFuelScore = allianceAutoFuelScore;
         this.allianceTeleopFuelScore = allianceTeleopFuelScore;
         this.wonMatch = wonMatch;
-        this.notes = notes;
         this.avgIntake = avgIntake;
         this.avgShoot = avgShoot;
         this.totalShoot = totalShoot;
@@ -73,7 +71,6 @@ public class ScoutDataPayload {
         o.put("alliance_auto_fuel_score", allianceAutoFuelScore);
         o.put("alliance_teleop_fuel_score", allianceTeleopFuelScore);
         o.put("won_match", wonMatch);
-        o.put("notes", notes);
         o.put("avg_intake", avgIntake);
         o.put("avg_shoot", avgShoot);
         o.put("total_shoot", totalShoot);

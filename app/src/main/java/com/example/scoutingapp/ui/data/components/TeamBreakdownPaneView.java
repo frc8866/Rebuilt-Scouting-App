@@ -211,20 +211,6 @@ public class TeamBreakdownPaneView {
                 new String[]{"Avg Fuel %", "Est. Fuel/Match"},
                 new String[]{fmt(agg.avgFuelPercent) + "%", fmt(agg.avgFuelPerMatch)});
 
-        addSectionHeader(column, "Scouter Notes (" + agg.notes.size() + ")");
-        if (agg.notes.isEmpty()) {
-            TextView empty = new TextView(context);
-            empty.setText("No notes recorded.");
-            empty.setTextColor(DIM_CLR);
-            empty.setTextSize(13);
-            empty.setPadding(dp(4), 0, 0, 0);
-            column.addView(empty);
-        } else {
-            for (int i = 0; i < agg.notes.size(); i++) {
-                column.addView(noteCard(i + 1, agg.notes.get(i)));
-                addGap(column, 8);
-            }
-        }
         addGap(column, 8);
         return scroll;
     }
@@ -448,31 +434,6 @@ public class TeamBreakdownPaneView {
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         p.topMargin = dp(4);
         card.addView(valueView, p);
-        return card;
-    }
-
-    private View noteCard(int index, String text) {
-        LinearLayout card = cardContainer(10);
-        card.setOrientation(LinearLayout.HORIZONTAL);
-        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
-        bg.setColor(0xFF383838);
-        bg.setCornerRadius(dp(10));
-        card.setBackground(bg);
-        card.setPadding(dp(12), dp(12), dp(12), dp(12));
-
-        TextView indexView = new TextView(context);
-        indexView.setText("#" + index);
-        indexView.setTextColor(DIM_CLR);
-        indexView.setTextSize(12);
-        indexView.setTypeface(null, Typeface.BOLD);
-        card.addView(indexView, new LinearLayout.LayoutParams(dp(28), ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        TextView textView = new TextView(context);
-        textView.setText(text);
-        textView.setTextColor(VALUE_CLR);
-        textView.setTextSize(13);
-        card.addView(textView, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-
         return card;
     }
 

@@ -108,7 +108,6 @@ public class ScoutViewModel extends ViewModel {
         s.data.put("alliance_auto_fuel_score", "");
         s.data.put("alliance_teleop_fuel_score", "");
         s.data.put("won_match", null);
-        s.data.put("notes", "");
         s.data.put("avg_intake", 0.0);
         s.data.put("avg_shoot", 0.0);
         s.data.put("total_shoot", 0.0);
@@ -421,7 +420,6 @@ public class ScoutViewModel extends ViewModel {
                     parseIntOrDefault(d.get("alliance_auto_fuel_score"), 0),
                     parseIntOrDefault(d.get("alliance_teleop_fuel_score"), 0),
                     boolOrDefault(d.get("won_match"), false),
-                    d.get("notes") instanceof String ? (String) d.get("notes") : "",
                     doubleOrDefault(d.get("avg_intake"), 0.0),
                     doubleOrDefault(d.get("avg_shoot"), 0.0),
                     doubleOrDefault(d.get("total_shoot"), 0.0),

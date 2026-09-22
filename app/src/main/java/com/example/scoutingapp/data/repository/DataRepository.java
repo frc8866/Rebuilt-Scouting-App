@@ -186,7 +186,7 @@ public class DataRepository implements IDataRepository {
 
                 if (allRows.isEmpty()) {
                     TeamAggregate empty = new TeamAggregate(teamNumber, 0, 0.0, 0.0, 0.0, 0.0,
-                            false, false, false, false, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, new ArrayList<>());
+                            false, false, false, false, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
                     AppExecutors.runOnMain(() -> callback.onSuccess(empty));
                     return;
                 }
@@ -254,12 +254,6 @@ public class DataRepository implements IDataRepository {
         Object v = row.opt(key);
         if (v instanceof Boolean) return (Boolean) v;
         return null;
-    }
-
-    private static String optStr(JSONObject row, String key) {
-        if (!row.has(key) || row.isNull(key)) return null;
-        Object v = row.opt(key);
-        return v == null ? null : String.valueOf(v);
     }
 
     private static double round1(double d) {
@@ -354,12 +348,6 @@ public class DataRepository implements IDataRepository {
         }
         double fuelPerSecWhileShooting = shootTimeSumForRate > 0 ? fuelSumForRate / shootTimeSumForRate : 0.0;
 
-        List<String> notes = new ArrayList<>();
-        for (JSONObject r : rows) {
-            String note = optStr(r, "notes");
-            if (note != null && !note.trim().isEmpty()) notes.add(note);
-        }
-
         return new TeamAggregate(
                 teamNumber,
                 n,
@@ -377,8 +365,7 @@ public class DataRepository implements IDataRepository {
                 round1(avg.apply("fuel_percent")),
                 round1(avg.apply("driver_skill")),
                 round1(avgFuelPerMatch),
-                round1(fuelPerSecWhileShooting),
-                notes
+                round1(fuelPerSecWhileShooting)
         );
     }
 
