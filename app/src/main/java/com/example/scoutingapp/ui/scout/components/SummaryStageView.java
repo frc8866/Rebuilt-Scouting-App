@@ -160,7 +160,13 @@ public class SummaryStageView {
         setCheckRow(checkGroundLabel, checkGroundBox, f.groundIntake, "Ground Pickup");
         setCheckRow(checkStationLabel, checkStationBox, f.station, "Outpost / Station");
 
-        seekFuelPercent.setProgress(f.fuelPercent);
+        // Avoid re-asserting progress while the user has a finger on the thumb: render() runs
+        // synchronously off the same callback that reports drag progress, and calling
+        // setProgress mid-gesture (even to the same value) can fight the framework's own touch
+        // handling on some devices.
+        if (!seekFuelPercent.isPressed() && seekFuelPercent.getProgress() != f.fuelPercent) {
+            seekFuelPercent.setProgress(f.fuelPercent);
+        }
         tvFuelPercent.setText(f.fuelPercent + "%");
 
         boolean fuelPercentMissing = !f.fuelPercentTouched && !f.canSubmit;

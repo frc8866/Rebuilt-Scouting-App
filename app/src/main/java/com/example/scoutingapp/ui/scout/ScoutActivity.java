@@ -49,6 +49,7 @@ public class ScoutActivity extends AppCompatActivity {
 
     private ScoutStage lastRenderedStage = null;
     private MainScoutingStageView currentMainView = null;
+    private SummaryStageView currentSummaryView = null;
     private boolean initialized = false;
 
     @Override
@@ -124,8 +125,22 @@ public class ScoutActivity extends AppCompatActivity {
             return;
         }
 
+        // Same treatment as the main scouting stage above: Summary hosts the fuel-percent
+        // SeekBar, and every field edit (including each tick of a slider drag) pushes a new
+        // uiState. If we tore down and reinflated the whole SummaryStageView (and its SeekBar)
+        // on every one of those emissions, an in-progress drag would have its View destroyed
+        // mid-gesture and the system would drop the rest of the touch stream - the slider would
+        // move a few points and then stop responding. So once we're in Summary, reuse the
+        // existing view and just refresh its fields in place instead of rebuilding it.
+        if (state.stage == ScoutStage.Summary && lastRenderedStage == ScoutStage.Summary && currentSummaryView != null) {
+            currentSummaryView.render(summaryFieldsFrom(state));
+            lastRenderedStage = state.stage;
+            return;
+        }
+
         container.removeAllViews();
         currentMainView = null;
+        currentSummaryView = null;
 
         switch (state.stage) {
             case Start: {
@@ -160,19 +175,7 @@ public class ScoutActivity extends AppCompatActivity {
                 break;
             }
             case Summary: {
-                SummaryStageView.Fields fields = new SummaryStageView.Fields();
-                fields.bump = boolField(state, "bump");
-                fields.trench = boolField(state, "trench");
-                fields.groundIntake = boolField(state, "ground_intake");
-                fields.station = boolField(state, "station");
-                fields.driverSkill = intField(state, "driver_skill", 3);
-                fields.fuelPercent = intField(state, "fuel_percent", 0);
-                fields.fuelPercentTouched = boolField(state, "fuel_percent_touched");
-                fields.allianceAutoFuelScore = stringField(state, "alliance_auto_fuel_score");
-                fields.allianceTeleopFuelScore = stringField(state, "alliance_teleop_fuel_score");
-                fields.wonMatch = state.data.get("won_match") instanceof Boolean ? (Boolean) state.data.get("won_match") : null;
-                fields.isSubmitting = state.isSubmitting;
-                fields.canSubmit = state.canSubmit();
+                SummaryStageView.Fields fields = summaryFieldsFrom(state);
 
                 SummaryStageView view = new SummaryStageView(this, container, state.teamNumber, state.matchId,
                         state.positionLabel, fields, new SummaryStageView.Callbacks() {
@@ -191,11 +194,29 @@ public class ScoutActivity extends AppCompatActivity {
                     @Override public void onSubmit() { viewModel.submitData(ScoutActivity.this::finish); }
                 });
                 container.addView(view.root);
+                currentSummaryView = view;
                 break;
             }
         }
 
         lastRenderedStage = state.stage;
+    }
+
+    private static SummaryStageView.Fields summaryFieldsFrom(ScoutUiState state) {
+        SummaryStageView.Fields fields = new SummaryStageView.Fields();
+        fields.bump = boolField(state, "bump");
+        fields.trench = boolField(state, "trench");
+        fields.groundIntake = boolField(state, "ground_intake");
+        fields.station = boolField(state, "station");
+        fields.driverSkill = intField(state, "driver_skill", 3);
+        fields.fuelPercent = intField(state, "fuel_percent", 0);
+        fields.fuelPercentTouched = boolField(state, "fuel_percent_touched");
+        fields.allianceAutoFuelScore = stringField(state, "alliance_auto_fuel_score");
+        fields.allianceTeleopFuelScore = stringField(state, "alliance_teleop_fuel_score");
+        fields.wonMatch = state.data.get("won_match") instanceof Boolean ? (Boolean) state.data.get("won_match") : null;
+        fields.isSubmitting = state.isSubmitting;
+        fields.canSubmit = state.canSubmit();
+        return fields;
     }
 
     private static boolean isMainScoutingStage(ScoutStage stage) {
