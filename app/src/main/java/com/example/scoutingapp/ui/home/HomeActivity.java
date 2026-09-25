@@ -30,6 +30,7 @@ import com.example.scoutingapp.data.config.ScoutPosition;
 import com.example.scoutingapp.data.repository.NextMatchInfo;
 import com.example.scoutingapp.data.scout.MatchStateStore;
 import com.example.scoutingapp.data.scout.SavedMatchState;
+import com.example.scoutingapp.sync.SyncManager;
 import com.example.scoutingapp.ui.data.DataActivity;
 import com.example.scoutingapp.ui.scout.ScoutActivity;
 import com.google.android.material.button.MaterialButton;
@@ -61,6 +62,7 @@ public class HomeActivity extends AppCompatActivity {
     private AlertDialog positionDialog;
 
     private boolean resumeDialogHandled = false;
+    private TextView drawerItemSyncNow;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,6 +86,16 @@ public class HomeActivity extends AppCompatActivity {
         findViewById(R.id.drawer_item_data).setOnClickListener(v -> {
             drawerLayout.closeDrawers();
             startActivity(new Intent(this, DataActivity.class));
+        });
+
+        drawerItemSyncNow = findViewById(R.id.drawer_item_sync_now);
+        findViewById(R.id.drawer_item_resync_schedule).setOnClickListener(v -> {
+            drawerLayout.closeDrawers();
+            viewModel.resyncSchedule();
+        });
+        drawerItemSyncNow.setOnClickListener(v -> {
+            drawerLayout.closeDrawers();
+            syncNow();
         });
 
         tvCompetitionName = findViewById(R.id.tv_competition_name);
@@ -130,6 +142,47 @@ public class HomeActivity extends AppCompatActivity {
         viewModel.dialogState.observe(this, this::renderScoutNextDialog);
 
         viewModel.pendingResume.observe(this, this::renderResumeDialog);
+
+        viewModel.scheduleSyncMessage.observe(this, message -> {
+            if (message != null && !message.isEmpty()) {
+                android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show();
+                viewModel.clearScheduleSyncMessage();
+            }
+        });
+
+        viewModel.pendingUploadCount.observe(this, count -> {
+            int n = count != null ? count : 0;
+            drawerItemSyncNow.setText(n > 0 ? "Sync Now (" + n + " pending)" : "Sync Now");
+        });
+    }
+
+    private void syncNow() {
+        if (!SyncManager.hasAnyConnection(this)) {
+            android.widget.Toast.makeText(this, "No internet connection right now.", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        android.widget.Toast.makeText(this, "Syncing...", android.widget.Toast.LENGTH_SHORT).show();
+        viewModel.syncNow(new com.example.scoutingapp.util.Callback<SyncManager.SyncResult>() {
+            @Override
+            public void onSuccess(SyncManager.SyncResult result) {
+                String message;
+                if (result.uploaded > 0 && result.remaining == 0) {
+                    message = "Uploaded " + result.uploaded + " match" + (result.uploaded == 1 ? "" : "es") + ".";
+                } else if (result.uploaded > 0) {
+                    message = "Uploaded " + result.uploaded + ", " + result.remaining + " still pending.";
+                } else if (result.remaining == 0) {
+                    message = "Nothing to sync.";
+                } else {
+                    message = "Couldn't sync right now - " + result.remaining + " match(es) still pending.";
+                }
+                android.widget.Toast.makeText(HomeActivity.this, message, android.widget.Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                android.widget.Toast.makeText(HomeActivity.this, "Sync failed: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     // ── Toolbar position button ────────────────────────────────────────────────

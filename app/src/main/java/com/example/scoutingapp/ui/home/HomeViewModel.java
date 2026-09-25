@@ -16,7 +16,9 @@ import com.example.scoutingapp.data.repository.MatchRepository;
 import com.example.scoutingapp.data.repository.NextMatchInfo;
 import com.example.scoutingapp.data.repository.ScheduleCache;
 import com.example.scoutingapp.data.scout.MatchStateStore;
+import com.example.scoutingapp.data.scout.PendingUploadStore;
 import com.example.scoutingapp.data.scout.SavedMatchState;
+import com.example.scoutingapp.sync.SyncManager;
 import com.example.scoutingapp.util.Callback;
 
 import java.util.Collections;
@@ -45,6 +47,17 @@ public class HomeViewModel extends ViewModel {
     public final LiveData<NextMatchDialogState> dialogState = _dialogState;
 
     private NavigateCallback pendingNavigate;
+
+    // ── Offline-first schedule sync ──────────────────────────────────────────
+
+    private final MutableLiveData<Boolean> _scheduleDownloading = new MutableLiveData<>(false);
+    public final LiveData<Boolean> scheduleDownloading = _scheduleDownloading;
+
+    private final MutableLiveData<String> _scheduleSyncMessage = new MutableLiveData<>(null);
+    public final LiveData<String> scheduleSyncMessage = _scheduleSyncMessage;
+
+    /** Count of scouted matches saved locally but not yet confirmed uploaded to Supabase. */
+    public final LiveData<Integer> pendingUploadCount = PendingUploadStore.getCountLiveData();
 
     // ── Resume ────────────────────────────────────────────────────────────────
 
@@ -101,6 +114,42 @@ public class HomeViewModel extends ViewModel {
             matchRepository.invalidateSchedule(old.getCompetition());
         }
         configStore.updateCompetition(newComp);
+        // Offline-first: download the new competition's schedule right away so the rest of the
+        // event can run without a network connection.
+        downloadSchedule(newComp);
+    }
+
+    /** Manual "Re-sync Schedule" action - re-downloads the current competition's schedule. */
+    public void resyncSchedule() {
+        DeviceConfig config = configStore.getConfigLiveData().getValue();
+        if (config == null) return;
+        downloadSchedule(config.getCompetition());
+    }
+
+    private void downloadSchedule(Competition competition) {
+        _scheduleDownloading.setValue(true);
+        matchRepository.prefetchSchedule(competition, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                _scheduleDownloading.setValue(false);
+                _scheduleSyncMessage.setValue("Schedule downloaded for " + competition.getDisplayName());
+            }
+
+            @Override
+            public void onError(Exception e) {
+                _scheduleDownloading.setValue(false);
+                _scheduleSyncMessage.setValue("Couldn't download schedule (offline?). Using cached copy if available.");
+            }
+        });
+    }
+
+    public void clearScheduleSyncMessage() {
+        _scheduleSyncMessage.setValue(null);
+    }
+
+    /** Manual "Sync Now" action - uploads any locally-queued matches, over any connection type. */
+    public void syncNow(Callback<SyncManager.SyncResult> callback) {
+        SyncManager.flushNow(callback);
     }
 
     public void changeScoutPosition(ScoutPosition newPosition) {

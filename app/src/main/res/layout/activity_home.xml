@@ -148,6 +148,24 @@
             android:text="View Data"
             android:textColor="@color/text" />
 
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" />
+
+        <TextView
+            android:id="@+id/drawer_item_resync_schedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Re-sync Schedule"
+            android:textColor="@color/text" />
+
+        <TextView
+            android:id="@+id/drawer_item_sync_now"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Sync Now"
+            android:textColor="@color/text" />
+
     </LinearLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

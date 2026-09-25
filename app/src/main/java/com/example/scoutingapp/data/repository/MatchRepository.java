@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.scoutingapp.data.config.Competition;
 import com.example.scoutingapp.data.config.ScoutPosition;
+import com.example.scoutingapp.data.scout.PendingUploadStore;
 import com.example.scoutingapp.data.supabase.PostgrestClient;
 import com.example.scoutingapp.domain.TableResolver;
 import com.example.scoutingapp.util.AppExecutors;
@@ -49,26 +50,71 @@ public class MatchRepository {
         List<QualMatch> cached = ScheduleCache.getSchedule(competition.getKey());
         if (cached != null) return cached;
 
-        JSONArray rows = client.select(TableResolver.quals(competition), "*");
-        List<QualMatch> fetched = new ArrayList<>();
-        for (int i = 0; i < rows.length(); i++) {
-            fetched.add(parseQualMatch(rows.getJSONObject(i)));
-        }
-        fetched.sort((a, b) -> Integer.compare(a.id, b.id));
+        try {
+            JSONArray rows = client.select(TableResolver.quals(competition), "*");
+            List<QualMatch> fetched = new ArrayList<>();
+            for (int i = 0; i < rows.length(); i++) {
+                fetched.add(parseQualMatch(rows.getJSONObject(i)));
+            }
+            fetched.sort((a, b) -> Integer.compare(a.id, b.id));
 
-        ScheduleCache.putSchedule(competition.getKey(), fetched);
-        return fetched;
+            ScheduleCache.putSchedule(competition.getKey(), fetched);
+            return fetched;
+        } catch (Exception e) {
+            // Offline-first fallback: use the schedule downloaded earlier in the event, if any,
+            // instead of failing outright just because we can't reach the network right now.
+            List<QualMatch> persisted = ScheduleCache.getPersistedSchedule(competition.getKey());
+            if (persisted != null) {
+                Log.w("MatchRepository", "Schedule fetch failed, using offline copy: " + e.getMessage());
+                ScheduleCache.putSchedule(competition.getKey(), persisted);
+                return persisted;
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Downloads (or re-downloads) the full qual schedule for this competition and persists it
+     * to disk, so the rest of the event can run without a network connection. Used both
+     * automatically when a competition is selected and from the manual "Re-sync Schedule"
+     * action. On failure, the previously downloaded/cached schedule (if any) is left untouched.
+     */
+    public void prefetchSchedule(Competition competition, Callback<Void> callback) {
+        AppExecutors.runBackground(() -> {
+            try {
+                JSONArray rows = client.select(TableResolver.quals(competition), "*");
+                List<QualMatch> fetched = new ArrayList<>();
+                for (int i = 0; i < rows.length(); i++) {
+                    fetched.add(parseQualMatch(rows.getJSONObject(i)));
+                }
+                fetched.sort((a, b) -> Integer.compare(a.id, b.id));
+                ScheduleCache.putSchedule(competition.getKey(), fetched);
+                AppExecutors.runOnMain(() -> callback.onSuccess(null));
+            } catch (Exception e) {
+                AppExecutors.runOnMain(() -> callback.onError(e));
+            }
+        });
     }
 
     // ── Scouted IDs fetch (cached) ────────────────────────────────────────────
 
     private Set<Integer> getScoutedIds(Competition competition, ScoutPosition position) {
         Set<Integer> cached = ScheduleCache.getScoutedIds(competition.getKey(), position);
-        if (cached != null) return cached;
+        Set<Integer> base;
+        if (cached != null) {
+            base = cached;
+        } else {
+            base = fetchScoutedIdsFromNetwork(competition, position);
+            ScheduleCache.putScoutedIds(competition.getKey(), position, base);
+        }
 
-        Set<Integer> fetched = fetchScoutedIdsFromNetwork(competition, position);
-        ScheduleCache.putScoutedIds(competition.getKey(), position, fetched);
-        return fetched;
+        // Offline-first: also treat matches queued locally (submitted but not yet confirmed
+        // uploaded) as scouted, so "next match" / "already scouted" checks stay correct even
+        // before those submissions reach the server.
+        Set<Integer> merged = new HashSet<>(base);
+        merged.addAll(PendingUploadStore.getPendingMatchNumbers(
+                competition.getKey(), TableResolver.positionString(position)));
+        return merged;
     }
 
     private Set<Integer> fetchScoutedIdsFromNetwork(Competition competition, ScoutPosition position) {

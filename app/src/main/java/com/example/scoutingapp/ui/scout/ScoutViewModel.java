@@ -13,9 +13,11 @@ import com.example.scoutingapp.data.config.Competition;
 import com.example.scoutingapp.data.config.ScoutPosition;
 import com.example.scoutingapp.data.repository.MatchRepository;
 import com.example.scoutingapp.data.scout.MatchStateStore;
+import com.example.scoutingapp.data.scout.PendingUploadStore;
 import com.example.scoutingapp.data.scout.SavedMatchState;
 import com.example.scoutingapp.data.supabase.PostgrestClient;
 import com.example.scoutingapp.domain.TableResolver;
+import com.example.scoutingapp.sync.SyncManager;
 import com.example.scoutingapp.util.AppExecutors;
 
 import java.util.ArrayList;
@@ -25,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -427,28 +430,38 @@ public class ScoutViewModel extends ViewModel {
             );
             String tableName = TableResolver.data(new Competition(s.competition, ""));
 
+            // Offline-first: the match is queued to disk before anything else, so it is never
+            // lost even if the device has no signal at all or the app is killed right after.
+            // SyncManager then makes a best-effort immediate upload attempt and keeps retrying
+            // automatically (once Wi-Fi is available) until it succeeds.
             try {
-                postgrest.insert(tableName, payload.toJson());
-                Log.d("ScoutVM", "Submit succeeded: " + tableName + " match=" + payload.matchNumber);
-                AppExecutors.runOnMain(() -> onSubmitSuccess(onSuccess));
+                PendingUploadStore.PendingUpload upload = new PendingUploadStore.PendingUpload(
+                        UUID.randomUUID().toString(),
+                        s.competition,
+                        tableName,
+                        payload.matchNumber,
+                        positionStr,
+                        payload.toJson().toString(),
+                        System.currentTimeMillis());
+                PendingUploadStore.add(upload);
             } catch (Exception e) {
-                Log.e("ScoutVM", "Submit failed: " + e.getMessage());
+                Log.e("ScoutVM", "Failed to queue submission: " + e.getMessage());
                 AppExecutors.runOnMain(() -> update(st -> {
                     st.isSubmitting = false;
-                    st.submitError = "Submission failed: " + e.getMessage();
+                    st.submitError = "Failed to save match locally: " + e.getMessage();
                 }));
+                return;
             }
+
+            Log.d("ScoutVM", "Match queued for upload: " + tableName + " match=" + payload.matchNumber);
+            AppExecutors.runOnMain(() -> onSubmitSuccess(onSuccess));
+            SyncManager.flushNow(null);
         });
     }
 
     private void onSubmitSuccess(OnSuccess onSuccess) {
         cancelTimer();
         cancelPeriodicSave();
-
-        ScoutUiState s = state();
-        Competition competition = new Competition(s.competition, "");
-        ScoutPosition position = parsePositionLabel(s.positionLabel);
-        matchRepository.invalidateScoutedIds(competition, position);
 
         AppExecutors.runBackground(matchStateStore::clear);
 
