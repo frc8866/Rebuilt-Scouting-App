@@ -47,7 +47,7 @@ public class HoldTimerButtonView extends LinearLayout {
         int padding = dp(16);
         setPadding(padding, padding, padding, padding);
         setMinimumWidth(dp(140));
-        setMinimumHeight(dp(90));
+        setMinimumHeight(dp(76));
 
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
         bg.setColor(backgroundColor);
