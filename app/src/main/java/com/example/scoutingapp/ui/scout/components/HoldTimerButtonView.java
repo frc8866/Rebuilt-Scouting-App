@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -95,7 +96,7 @@ public class HoldTimerButtonView extends LinearLayout {
     }
 
     private void onPress() {
-        pressStart = System.currentTimeMillis();
+        pressStart = SystemClock.elapsedRealtime();
         long gapMs = pressStart - lastReleaseTime;
 
         if (gapMs < 200L) {
@@ -111,7 +112,7 @@ public class HoldTimerButtonView extends LinearLayout {
             @Override
             public void run() {
                 if (!isPressed) return;
-                long currentPressMs = System.currentTimeMillis() - pressStart;
+                long currentPressMs = SystemClock.elapsedRealtime() - pressStart;
                 liveView.setText(String.format(Locale.US, "\u25B6 %.1fs", currentPressMs / 1000.0));
                 handler.postDelayed(this, 50);
             }
@@ -120,11 +121,11 @@ public class HoldTimerButtonView extends LinearLayout {
     }
 
     private void onRelease() {
-        long heldMs = System.currentTimeMillis() - pressStart;
+        long heldMs = SystemClock.elapsedRealtime() - pressStart;
         if (tickRunnable != null) handler.removeCallbacks(tickRunnable);
         isPressed = false;
         liveView.setVisibility(GONE);
-        lastReleaseTime = System.currentTimeMillis();
+        lastReleaseTime = SystemClock.elapsedRealtime();
 
         // Only count presses held for at least 200ms.
         if (heldMs >= 200L) {
