@@ -119,10 +119,16 @@ public class HomeViewModel extends ViewModel {
         downloadSchedule(newComp);
     }
 
-    /** Manual "Re-sync Schedule" action - re-downloads the current competition's schedule. */
+    /** Manual "Re-sync Schedule" action - re-downloads the current competition's schedule.
+     *
+     *  Also invalidates the cached "scouted match" IDs for this device's position. Without
+     *  this, a match that was uploaded and later deleted server-side (e.g. to allow
+     *  re-scouting) would stay marked as scouted forever, since the in-memory scouted-ids
+     *  cache is otherwise only invalidated right after this device itself uploads a match. */
     public void resyncSchedule() {
         DeviceConfig config = configStore.getConfigLiveData().getValue();
         if (config == null) return;
+        matchRepository.invalidateScoutedIds(config.getCompetition(), config.getScoutPosition());
         downloadSchedule(config.getCompetition());
     }
 
